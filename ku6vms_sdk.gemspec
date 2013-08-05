@@ -3,7 +3,7 @@
 # Load version requiring the canonical "sndacs/version", otherwise Ruby will think
 # is a different file and complaint about a double declaration of Sndacs::VERSION.
 $LOAD_PATH.unshift File.expand_path("../lib", __FILE__)
-require "grand_cloud/version"
+require "grandcloud"
 
 Gem::Specification.new do |s|
   s.name        = "ku6vms_sdk"
