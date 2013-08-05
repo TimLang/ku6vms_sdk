@@ -103,6 +103,8 @@ module GrandCloud
       end
     end
 
+    private
+
     def callback req, func=nil
       response = EM::DefaultDeferrable.new
       req.callback do

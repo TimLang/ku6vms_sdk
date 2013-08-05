@@ -18,7 +18,7 @@ module GrandCloud
         })
 
         url = URI.escape((options[:url] || ("http://#{(options[:host] || DEFAULT_HOST_URL)+options[:uri]}")) + "?" + protocal_params)+'&Signature='+CGI::escape(signature)
-        #EM.run do 
+
         params = {:head => {:Accept => options[:header_accept] || 'application/json'}}
         params.merge!(options[:request_params]) if options[:request_params]
         EM::HttpRequest.new(url).send((options[:method] && options[:method].downcase) || "get", params)
