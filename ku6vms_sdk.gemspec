@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.version     = GrandCloud::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Tim Lang"]
-  s.email       = ["langyong135@gmail.complaint"]
+  s.email       = ["langyong135@gmail.com"]
   s.homepage    = "https://github.com/TimLang/ku6vms_sdk"
   s.summary     = "Library for accessing Ku6vms"
   s.description = "ku6vms library provides access to SNDA ku6vms."
