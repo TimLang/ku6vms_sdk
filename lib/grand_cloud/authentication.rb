@@ -1,5 +1,4 @@
 
-
 module GrandCloud
 
   DEFAULT_HOST_URL = "api.ku6vms.com"
@@ -28,11 +27,11 @@ module GrandCloud
 
     def generate_protocol_params additional_params
       {
-        :Expires => Time.now.tomorrow.ago(3600*23).to_s(:db),
+        :Expires => format_time((DateTime.now+(1/24.00)).to_time),
         #:Expires => '2013-07-03 00:00:00',
         :SignatureMethod => 'HmacSHA256',
         :SndaAccessKeyId => @snda_access_key_id,
-        :Timestamp => Time.now.to_s(:db)
+        :Timestamp => format_time(Time.now)
         #:Timestamp => '2013-07-02 11:36:11'
       }.merge!(additional_params ? additional_params : {}).sort.collect{|k,v| "#{k}=#{v}"}.join('&')
     end
@@ -42,6 +41,11 @@ module GrandCloud
         :SignatureMethod => 'HmacSHA256',
         :SndaAccessKeyId => @snda_access_key_id
       }).sort.collect{|k,v| "#{k}=#{v}"}.join('&')
+    end
+
+    private 
+    def format_time time
+      time.strftime("%Y-%m-%d %H:%M:%S")
     end
 
   end

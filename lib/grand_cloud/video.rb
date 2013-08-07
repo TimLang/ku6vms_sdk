@@ -1,36 +1,41 @@
+
 module GrandCloud
   class Video
 
     class << self
-      def get_video_detail id
+
+      #u must start an event loop when u uploading an media
+      def run
+        EM.run { yield }
+      end
+
+      def get id
         common_request do
           Base.send_request({:method => 'get', :uri => "/video/#{id}"})
         end
       end
 
-      def create_video title
-        common_request do
-          req = Base.send_request({
-            :method => 'post',
-            :uri => '/video',
-            :additional_params => {
-              :Title => title
-            }
-          })
-        end
-      end
-
-      def upload_video sid, upload_url, file_path, &block
+      # upload is an async method
+      def upload title, file_path, &block
         file = File.new(file_path)
-        EM.run do 
+        creation = Base.send_request({
+          :method => 'post',
+          :uri => '/video',
+          :additional_params => {
+            :Title => title
+          }
+        })
+        creation.callback do 
+          rep = JSON.parse(creation.response)
+          puts rep
           req = Base.file_upload({
             :method => 'post',
             :uri => '/vmsUpload.htm',
-            :url => upload_url,
+            :url => rep['uploadUrl'],
             :file_path => file_path,
-            :host => upload_url.gsub(/^http:\/\/(.+)\/.+/, '\1'),
+            :host => rep['uploadUrl'].gsub(/^http:\/\/(.+)\/.+/, '\1'),
             :request_params => {
-              :sid => sid,
+              :sid => rep['sid'],
               :cfrom => 'client',
               :filesize => file.size,
               :ext => File.extname(file)
@@ -38,9 +43,12 @@ module GrandCloud
           })
           callback(req, block.to_proc)
         end
+        creation.errback do 
+          puts 'requesting error...'
+        end
       end
 
-      def update_video id, title, desc
+      def update id, title, desc
         common_request do
           Base.send_request({
             :method => 'put',
@@ -56,7 +64,7 @@ module GrandCloud
         end
       end
 
-      def delete_video id
+      def destory id
         common_request do 
           Base.send_request({
             :method => 'delete',
@@ -65,13 +73,13 @@ module GrandCloud
         end
       end
 
-      def list_videos
+      def list
         common_request do
           Base.send_request({:method => 'get', :uri => "/videos"})
         end
       end
 
-      def import_video ku6vid
+      def import_ku6 ku6vid
         common_request do
           Base.send_request({
             :method => 'get',
@@ -83,7 +91,7 @@ module GrandCloud
         end
       end
 
-      def publish_video id, programId
+      def publish id, programId
         common_request do 
           Base.send_request({
             :method => 'get',
@@ -126,18 +134,19 @@ module GrandCloud
         response
       end
 
+      # mock a sysynchronous request
       def common_request
         result= ''
         EM.run do 
-          callback(yield).callback do |rep|
-            result = rep
-          end.errback do |rep|
-            result = rep
-          end
-
+        callback(yield).callback do |rep|
+          result = rep
+        end.errback do |rep|
+          result = rep
         end
+      end
         result
       end
+
     end
   end
 end
