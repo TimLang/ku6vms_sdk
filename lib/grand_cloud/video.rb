@@ -80,7 +80,7 @@ module GrandCloud
       json = common_request do
         Base.send_request({:method => 'get', :uri => "/videos"})
       end
-      json['videoSet'].map{|v|[wrap_object(v)]}
+      json['videoSet'].map{|v| wrap_object(v) }
     end
 
     def import_ku6 ku6vid
