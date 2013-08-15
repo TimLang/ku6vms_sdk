@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+require 'logger'
 
 module GrandCloud
 
@@ -9,6 +10,9 @@ module GrandCloud
         Base.send_request({:method => 'get', :uri => "/video/#{id}"})
       end
       wrap_object(json['video'])
+    rescue Error::ResponseError => e
+      GrandCloud.logger.error(e)
+      return nil
     end
 
     #u must start an event loop when u uploading an media
@@ -28,7 +32,7 @@ module GrandCloud
       })
       creation.callback do 
         rep = JSON.parse(creation.response)
-        puts rep
+        GrandCloud.logger.warn(rep)
         req = Base.file_upload({
           :method => 'post',
           :uri => '/vmsUpload.htm',
@@ -45,7 +49,7 @@ module GrandCloud
         callback(req, block.to_proc, rep.select{|k, v| k =='sid' || k =='vid'})
       end
       creation.errback do 
-        puts 'requesting error...'
+        GrandCloud.logger.error('requesting error...')
       end
     end
 
@@ -64,6 +68,9 @@ module GrandCloud
         })
       end
       json['returnValue']
+    rescue Error::ResponseError => e
+      GrandCloud.logger.error(e)
+      return false
     end
 
     def destory id
@@ -74,6 +81,9 @@ module GrandCloud
         })
       end
       json['returnValue']
+    rescue Error::ResponseError => e
+      GrandCloud.logger.error(e)
+      return false
     end
 
     def list
@@ -81,6 +91,9 @@ module GrandCloud
         Base.send_request({:method => 'get', :uri => "/videos"})
       end
       json['videoSet'].map{|v| wrap_object(v) }
+    rescue Error::ResponseError => e
+      GrandCloud.logger.error(e)
+      return []
     end
 
     def import_ku6 ku6vid
@@ -112,6 +125,9 @@ module GrandCloud
         r.merge!(k => (v.is_a?(Hash) ? v['value'] : v))
       end
       wrap_object(json)
+    rescue Error::ResponseError => e
+      GrandCloud.logger.error(e)
+      return nil
     end
 
     def get_programs
@@ -121,12 +137,23 @@ module GrandCloud
           :uri => '/programs'
         })
       end
+    rescue Error::ResponseError => e
+      GrandCloud.logger.error(e)
+      return []
     end
 
     #15622
     def get_default_program_id
-      result = get_programs['programSet'].select{|a| a['programName'] == '默认方案'}
-      result.empty? ? 0 : result[0]['programId']
+      programs = get_programs 
+      unless programs.empty?
+        result = programs['programSet'].select{|a| a['programName'] == '默认方案'}
+        result.empty? ? nil : result[0]['programId']
+      else
+        nil
+      end
+    rescue Error::ResponseError => e
+      GrandCloud.logger.error(e)
+      return nil
     end
 
     private
@@ -140,12 +167,13 @@ module GrandCloud
         else
           response.succeed(additional_attributes ? rep.merge!(additional_attributes) : rep)
         end
+        raise Error::ResponseError.new(rep['errors'][0]) if rep['errors']
         func.call(rep) if func
         EM.stop
       end
       req.errback do
         response.fail(nil)
-        func.call("{errors:[{'message': 'Requested error...'}]}".to_json) if func
+        raise Error::ResponseError.new("Maybe the network doesn't working")
         EM.stop
       end
       response

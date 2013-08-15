@@ -2,8 +2,6 @@
 
 module GrandCloud
 
-  DEFAULT_HOST_URL = "api.ku6vms.com"
-
   class Authentication
     attr_reader :secret_access_key, :snda_access_key_id
 

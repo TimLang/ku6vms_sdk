@@ -3,7 +3,7 @@
 module GrandCloud
 
   module Error
-    
+
     class ResponseError < StandardError
 
     end

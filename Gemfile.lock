@@ -22,6 +22,9 @@ GEM
       eventmachine (>= 1.0.0.beta.4)
     eventmachine (1.0.3)
     http_parser.rb (0.6.0.beta.2)
+    metaclass (0.0.1)
+    mocha (0.12.3)
+      metaclass (~> 0.0.1)
     multipart_body (0.2.1)
     rspec (2.14.1)
       rspec-core (~> 2.14.0)
@@ -39,5 +42,6 @@ DEPENDENCIES
   debugger
   em-http-request
   eventmachine
+  mocha
   multipart_body
   rspec
