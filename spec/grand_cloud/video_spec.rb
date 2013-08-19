@@ -21,6 +21,14 @@ module GrandCloud
 
       context "#video must done successfully functions" do
 
+        it "should pulled by ku6vms" do
+          @video.run do
+            @video.pull_by_vms('spec_pull_video', 'http://storage-huadong-1.sdcloud.cn/images.jiaoxuebang.com/nec_ppt.mp4?SNDAAccessKeyId=BH297OBMKFV0T2LO9MC189P2J&Expires=1376880551&Signature=MxRKaSen2q65pd8jjUK9Tt8Ffz8%3D'){ |rep|
+              rep['code'].should == 200
+            }
+          end
+        end
+
         it 'should upload video' do
           @video.run do
             GrandCloud.logger.info('start uploading, please wait...')

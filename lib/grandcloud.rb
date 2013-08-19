@@ -14,6 +14,7 @@ require 'grand_cloud/authentication'
 require 'grand_cloud/base'
 require 'grand_cloud/video'
 require 'grand_cloud/version'
+require 'debugger'
 
 module GrandCloud
 

@@ -20,9 +20,7 @@ module GrandCloud
       EM.run { yield }
     end
 
-    # upload is an async method
-    def upload title, file_path, &block
-      file = File.new(file_path)
+    def create title, &block
       creation = Base.send_request({
         :method => 'post',
         :uri => '/video',
@@ -30,9 +28,21 @@ module GrandCloud
           :Title => title
         }
       })
-      creation.callback do 
-        rep = JSON.parse(creation.response)
+      creation.callback { block.call(JSON.parse(creation.response)) }
+
+      creation.errback do 
+        GrandCloud.logger.error('requesting error...')
+      end
+    end
+
+    # upload is an async method
+    def upload title, file_path, &block
+      file = File.new(file_path)
+
+      self.create(title) do |rep| 
+
         GrandCloud.logger.warn(rep)
+
         req = Base.file_upload({
           :method => 'post',
           :uri => '/vmsUpload.htm',
@@ -48,8 +58,26 @@ module GrandCloud
         })
         callback(req, block.to_proc, rep.select{|k, v| k =='sid' || k =='vid'})
       end
-      creation.errback do 
-        GrandCloud.logger.error('requesting error...')
+    end
+
+    def pull_by_vms title, download_url, &block 
+      self.create(title) do |rep|
+
+        GrandCloud.logger.warn(rep)
+
+        req = Base.send_request({
+          :method => 'post',
+          :uri => '/video/urlupload',
+          :additional_params => {
+            :sid => rep['sid'],
+            :videoUrl => CGI::escape(download_url),
+            :uploadUrl => rep['uploadUrl'],
+            :accessKey => Base.snda_access_key_id,
+            :secretKey => Base.secret_access_key
+          }
+
+        })
+        callback(req, block.to_proc, rep.select{|k, v| k =='sid' || k == 'vid'})
       end
     end
 
