@@ -20,12 +20,13 @@ module GrandCloud
       EM.run { yield }
     end
 
-    def create title, &block
+    def create title, pass_encoding=false, &block
       creation = Base.send_request({
         :method => 'post',
         :uri => '/video',
         :additional_params => {
-          :Title => title
+          :Title => title,
+          :BypassEncoding => pass_encoding
         }
       })
       creation.callback { block.call(JSON.parse(creation.response)) }
@@ -36,10 +37,10 @@ module GrandCloud
     end
 
     # upload is an async method
-    def upload title, file_path, &block
+    def upload title, file_path, pass_encoding=nil, &block
       file = File.new(file_path)
 
-      self.create(title) do |rep| 
+      self.create(title, pass_encoding) do |rep| 
 
         GrandCloud.logger.warn(rep)
 
@@ -54,7 +55,11 @@ module GrandCloud
             :cfrom => 'client',
             :filesize => file.size,
             :ext => File.extname(file)
+          },
+          :timeout => {
+            :inactivity_timeout => 0
           }
+
         })
         callback(req, block.to_proc, rep.select{|k, v| k =='sid' || k =='vid'})
       end
@@ -74,6 +79,9 @@ module GrandCloud
             :uploadUrl => rep['uploadUrl'],
             :accessKey => Base.snda_access_key_id,
             :secretKey => Base.secret_access_key
+          },
+          :timeout => {
+            :inactivity_timeout => 0
           }
 
         })
@@ -201,7 +209,7 @@ module GrandCloud
       end
       req.errback do
         response.fail(nil)
-        raise Error::ResponseError.new("Maybe the network doesn't working")
+        raise Error::ResponseError.new("Error is #{req.error}, Maybe the network doesn't working")
         EM.stop
       end
       response

@@ -20,9 +20,12 @@ module GrandCloud
 
         url = URI.escape((options[:url] || ("http://#{(options[:host] || DEFAULT_HOST_URL)+options[:uri]}")) + "?" + protocal_params)+'&Signature='+CGI::escape(signature)
 
+        request_params = {}
+        request_params.merge!(options[:timeout]) if options[:timeout]
+
         params = {:head => {:Accept => options[:header_accept] || 'application/json'}}
         params.merge!(options[:request_params]) if options[:request_params]
-        EM::HttpRequest.new(url).send((options[:method] && options[:method].downcase) || "get", params)
+        EM::HttpRequest.new(url, request_params).send((options[:method] && options[:method].downcase) || "get", params)
       end
 
       def file_upload options
