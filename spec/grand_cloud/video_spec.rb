@@ -23,7 +23,7 @@ module GrandCloud
 
         it "should pulled by ku6vms" do
           @video.run do
-            @video.pull_by_vms('spec_pull_video', 'http://storage-huadong-1.sdcloud.cn/images.jiaoxuebang.com/nec_ppt.mp4?SNDAAccessKeyId=BH297OBMKFV0T2LO9MC189P2J&Expires=1376880551&Signature=MxRKaSen2q65pd8jjUK9Tt8Ffz8%3D'){ |rep|
+            @video.pull_by_vms('spec_pull_video', 'http://storage-huadong-1.sdcloud.cn/images.jiaoxuebang.com/MOV_0399.mp4?SNDAAccessKeyId=BH297OBMKFV0T2LO9MC189P2J&Expires=1377147099&Signature=JpbNOKlBc7SD4%2FYKIiPz8HJDHf4%3D'){ |rep|
               rep['code'].should == 200
             }
           end
@@ -32,7 +32,7 @@ module GrandCloud
         it 'should upload video' do
           @video.run do
             GrandCloud.logger.info('start uploading, please wait...')
-            @video.upload('spec_video', '/tmp/test.mp4'){ |rep|
+            @video.upload('spec_video', File.new('/tmp/test.mp4')){ |rep|
               @@video_id = rep['vid']
               rep['code'].should == 200
             }

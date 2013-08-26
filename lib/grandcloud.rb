@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+require 'pathname'
 require 'date'
 require 'net/http'
 require 'cgi'

@@ -37,10 +37,9 @@ module GrandCloud
     end
 
     # upload is an async method
-    def upload title, file_path, pass_encoding=nil, &block
-      file = File.new(file_path)
-
-      self.create(title, pass_encoding) do |rep| 
+    def upload title, file, pass_encoding=nil, &block
+      pn_file = Pathname(file)
+      self.create(title.empty? ? pn_file.basename(pn_file.extname) : title, pass_encoding) do |rep| 
 
         GrandCloud.logger.warn(rep)
 
@@ -48,20 +47,20 @@ module GrandCloud
           :method => 'post',
           :uri => '/vmsUpload.htm',
           :url => rep['uploadUrl'],
-          :file_path => file_path,
+          :pn_file => pn_file,
           :host => rep['uploadUrl'].gsub(/^http:\/\/(.+)\/.+/, '\1'),
           :request_params => {
             :sid => rep['sid'],
             :cfrom => 'client',
-            :filesize => file.size,
-            :ext => File.extname(file)
+            :filesize => pn_file.size,
+            :ext => pn_file.extname
           },
           :timeout => {
             :inactivity_timeout => 0
           }
 
         })
-        callback(req, block.to_proc, rep.select{|k, v| k =='sid' || k =='vid'})
+        callback(req, block.to_proc, rep.select{|k, v| %W{sid vid}.include?(k)})
       end
     end
 
@@ -85,7 +84,7 @@ module GrandCloud
           }
 
         })
-        callback(req, block.to_proc, rep.select{|k, v| k =='sid' || k == 'vid'})
+        callback(req, block.to_proc, rep.select{|k, v| %W{sid vid}.include?(k)})
       end
     end
 

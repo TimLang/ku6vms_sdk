@@ -29,6 +29,7 @@ module GrandCloud
       end
 
       def file_upload options
+        pn_file = options[:pn_file]
         auth = GrandCloud::Authentication.new(@secret_access_key, @snda_access_key_id)
 
         protocal_params = auth.generate_upload_params options[:request_params]
@@ -44,8 +45,8 @@ module GrandCloud
         #multipart patch
         partfile = Part.new(
           :name => 'file',
-          :filename => File.basename(options[:file_path]),
-          :body => File.new(options[:file_path]).read
+          :filename => pn_file.basename(pn_file.extname),
+          :body => pn_file.read
         )
         parts = [partfile]
         body = MultipartBody.new(parts)
