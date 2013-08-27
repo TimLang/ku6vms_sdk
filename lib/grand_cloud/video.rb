@@ -32,14 +32,24 @@ module GrandCloud
       creation.callback { block.call(JSON.parse(creation.response)) }
 
       creation.errback do 
-        GrandCloud.logger.error('requesting error...')
+        GrandCloud.logger.error("Error is: #{creation.error}, requesting error...")
+        block.call(nil)
       end
     end
 
     # upload is an async method
-    def upload title, file, pass_encoding=nil, &block
+    # you should pass an original_filename on options when you uploading a temp file
+    def upload title, file, options={}, pass_encoding=false, &block
+      return EM.stop if ((file.class == Tempfile) && (!options[:original_filename])) || !block_given?
+
       pn_file = Pathname(file)
-      self.create(title.empty? ? pn_file.basename(pn_file.extname) : title, pass_encoding) do |rep| 
+
+      title = get_video_title(title, options[:original_filename], pn_file)
+      extname = get_video_extname(options[:original_filename], pn_file)
+
+      self.create(title, pass_encoding) do |rep| 
+
+        return block.call(nil) unless rep
 
         GrandCloud.logger.warn(rep)
 
@@ -53,7 +63,7 @@ module GrandCloud
             :sid => rep['sid'],
             :cfrom => 'client',
             :filesize => pn_file.size,
-            :ext => pn_file.extname
+            :ext => extname
           },
           :timeout => {
             :inactivity_timeout => 0
@@ -65,7 +75,11 @@ module GrandCloud
     end
 
     def pull_by_vms title, download_url, &block 
+      return EM.stop unless block_given?
+
       self.create(title) do |rep|
+
+        return block.call(nil) unless rep
 
         GrandCloud.logger.warn(rep)
 
@@ -235,6 +249,15 @@ module GrandCloud
         r
       end
       self
+    end
+
+    def get_video_title title, original_filename, pn_file
+      return title unless title.blank?
+      original_filename ? File.basename(original_filename, File.extname(original_filename)) : pn_file.basename(pn_file.extname)
+    end
+  
+    def get_video_extname original_filename, pn_file
+      original_filename ? File.extname(original_filename) : pn_file.extname
     end
 
   end

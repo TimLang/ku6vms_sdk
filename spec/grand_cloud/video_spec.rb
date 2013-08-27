@@ -1,6 +1,7 @@
 # -*- encoding : utf-8 -*-
 
 require 'spec_heler'
+require 'tempfile'
 require 'debugger'
 
 module GrandCloud
@@ -33,6 +34,19 @@ module GrandCloud
           @video.run do
             GrandCloud.logger.info('start uploading, please wait...')
             @video.upload('spec_video', File.new('/tmp/test.mp4')){ |rep|
+              @@video_id = rep['vid']
+              rep['code'].should == 200
+            }
+          end
+        end
+
+        it "should upload while mocking a rails controller" do
+          file_path = '/tmp/test.mp4'
+          @video.run do
+            GrandCloud.logger.info('start uploading, please wait...')
+            temp_file = Tempfile.new('/tmp/Rack_tempfiles_0')
+            temp_file.write(File.new(file_path).read)
+            @video.upload('mock_tempfile_as_video', temp_file, {:original_filename => 'woce.mp4'}){ |rep|
               @@video_id = rep['vid']
               rep['code'].should == 200
             }
@@ -80,6 +94,16 @@ module GrandCloud
 
         it "should return false when updating video raise exception" do
           @video.update(nil, nil, nil).should == false 
+        end
+
+        it "should return nil when uploading video with a temp file without passed an original_filename" do
+          file_path = '/tmp/test.mp4'
+          nil.should == @video.run do
+            GrandCloud.logger.info('start uploading, please wait...')
+            temp_file = Tempfile.new('/tmp/Rack_tempfiles_0')
+            temp_file.write(File.new(file_path).read)
+            @video.upload('mock_tempfile_as_video', temp_file) {}
+          end 
         end
 
         it "should return false when deleting video raise exception" do
