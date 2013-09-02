@@ -91,7 +91,8 @@ module GrandCloud
             :videoUrl => CGI::escape(download_url),
             :uploadUrl => rep['uploadUrl'],
             :accessKey => Base.snda_access_key_id,
-            :secretKey => Base.secret_access_key
+            :secretKey => Base.secret_access_key,
+            :oneway => true
           },
           :timeout => {
             :inactivity_timeout => 0
@@ -210,7 +211,7 @@ module GrandCloud
     def callback req, func=nil, additional_attributes=nil
       response = EM::DefaultDeferrable.new
       req.callback do
-        rep = JSON.parse(req.response)
+        rep = req.response.blank? ? {'code' => req.response_header.status} : JSON.parse(req.response)
         if rep['errors']
           response.fail(rep)
         else
