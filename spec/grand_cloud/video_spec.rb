@@ -26,7 +26,6 @@ module GrandCloud
           @video.run do
             @video.pull_by_vms('spec_pull_video', 'http://storage-huadong-1.sdcloud.cn/images.jiaoxuebang.com/MOV_0399.mp4?SNDAAccessKeyId=BH297OBMKFV0T2LO9MC189P2J&Expires=1377147099&Signature=JpbNOKlBc7SD4%2FYKIiPz8HJDHf4%3D'){ |rep|
               puts rep
-              debugger
               rep['code'].should == 202
             }
           end
