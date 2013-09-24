@@ -23,7 +23,7 @@ module GrandCloud
         request_params = {}
         request_params.merge!(options[:timeout]) if options[:timeout]
 
-        params = {:head => {:Accept => options[:header_accept] || 'application/json'}}
+        params = {:head => {:Accept => options[:header_accept] || 'application/xml'}}
         params.merge!(options[:request_params]) if options[:request_params]
         EM::HttpRequest.new(url, request_params).send((options[:method] && options[:method].downcase) || "get", params)
       end

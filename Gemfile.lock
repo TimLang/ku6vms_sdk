@@ -26,6 +26,8 @@ GEM
     mocha (0.12.3)
       metaclass (~> 0.0.1)
     multipart_body (0.2.1)
+    nokogiri (1.5.10)
+    nori (2.3.0)
     rspec (2.14.1)
       rspec-core (~> 2.14.0)
       rspec-expectations (~> 2.14.0)
@@ -44,4 +46,6 @@ DEPENDENCIES
   eventmachine
   mocha
   multipart_body
+  nokogiri
+  nori
   rspec

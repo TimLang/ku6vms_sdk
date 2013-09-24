@@ -9,7 +9,7 @@ module GrandCloud
       json = common_request do
         Base.send_request({:method => 'get', :uri => "/video/#{id}"})
       end
-      wrap_object(json['video'])
+      wrap_object(json['DetailVideoResponse']['video'])
     rescue Error::ResponseError => e
       GrandCloud.logger.error(e)
       return nil
@@ -29,7 +29,7 @@ module GrandCloud
           :BypassEncoding => pass_encoding
         }
       })
-      creation.callback { block.call(JSON.parse(creation.response)) }
+      creation.callback { block.call(GrandCloud.nori.parse(creation.response)['CreateVideoResponse']) }
 
       creation.errback do 
         GrandCloud.logger.error("Error is: #{creation.error}, requesting error...")
@@ -117,7 +117,7 @@ module GrandCloud
           }
         })
       end
-      json['returnValue']
+      json['ModifyVideoResponse']['return']
     rescue Error::ResponseError => e
       GrandCloud.logger.error(e)
       return false
@@ -130,7 +130,7 @@ module GrandCloud
           :uri => "/videos/#{id}"
         })
       end
-      json['returnValue']
+      json['RemoveVideosResponse']['return']
     rescue Error::ResponseError => e
       GrandCloud.logger.error(e)
       return false
@@ -140,7 +140,7 @@ module GrandCloud
       json = common_request do
         Base.send_request({:method => 'get', :uri => "/videos"})
       end
-      json['videoSet'].map{|v| wrap_object(v) }
+      json['ListVideoResponse']['videoSet']['item'].map{|v| wrap_object(v) }
     rescue Error::ResponseError => e
       GrandCloud.logger.error(e)
       return []
@@ -196,7 +196,7 @@ module GrandCloud
     def get_default_program_id
       programs = get_programs 
       unless programs.empty?
-        result = programs['programSet'].select{|a| a['programName'] == '默认方案'}
+        result = programs['ListProgramsResponse']['programSet'].select{|a| a['programName'] == '默认方案'}
         result.empty? ? nil : result[0]['programId']
       else
         nil
@@ -211,13 +211,15 @@ module GrandCloud
     def callback req, func=nil, additional_attributes=nil
       response = EM::DefaultDeferrable.new
       req.callback do
-        rep = req.response.blank? ? {'code' => req.response_header.status} : JSON.parse(req.response)
-        if rep['errors']
+        rep = req.response.blank? ? {'code' => req.response_header.status} : GrandCloud.nori.parse(req.response)
+        rep = JSON.parse(req.response) if rep.blank?
+        if (rep['Response'] && rep['Response']['errors']) || rep['HR']
           response.fail(rep)
         else
           response.succeed(additional_attributes ? rep.merge!(additional_attributes) : rep)
         end
-        raise Error::ResponseError.new(rep['errors'][0]) if rep['errors']
+        raise Error::ResponseError.new(rep['Response']['errors']['message']) if rep['Response'] && ['Response']['errors']
+        raise Error::ResponseError.new('Ku6vms Internal error ...') if rep['HR']
         func.call(rep) if func
         EM.stop
       end

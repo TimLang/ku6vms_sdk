@@ -16,17 +16,22 @@ require 'grand_cloud/authentication'
 require 'grand_cloud/base'
 require 'grand_cloud/video'
 require 'grand_cloud/version'
+require 'nokogiri'
+require 'nori'
 require 'debugger'
 
 module GrandCloud
 
   DEFAULT_HOST_URL = "api.ku6vms.com"
 
-  attr_reader :logger
+  attr_reader :logger, :nori
 
   def self.logger
     @logger || (@logger = Logger.new(STDOUT))
   end
 
+  def self.nori
+    @nori || Nori.new
+  end
 
 end
